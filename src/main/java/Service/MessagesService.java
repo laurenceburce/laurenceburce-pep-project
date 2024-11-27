@@ -23,4 +23,16 @@ public class MessagesService {
     public Message getMessageById(int message_id){
         return messagesDAO.getMessageById(message_id);
     }
+
+    public Message deleteMessageById(int message_id) {
+        return messagesDAO.deleteMessageById(message_id);
+    }
+
+    public Message updateMessageText(int message_id, String newMessageText) {
+        return messagesDAO.updateMessageText(message_id, newMessageText);
+    }
+
+    public List<Message> getMessagesByAccountId(int account_id) {
+        return messagesDAO.getMessagesByAccountId(account_id);
+    }
 }

@@ -1,5 +1,8 @@
 package Controller;
 
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,39 +38,42 @@ public class SocialMediaController {
         app.post("/messages", this::postCreateMessageHandler);
         app.get("/messages", this::getAllMessagesHandler);
         app.get("/messages/{message_id}", this::getMessageByIdHandler);
+        app.delete("/messages/{message_id}", this::deleteMessageByIdHandler);
+        app.patch("/messages/{message_id}", this::patchMessageTextHandler);
+        app.get("/accounts/{account_id}/messages", this::getMessagesByAccountIdHandler);
         return app;
     }
 
-    private void postCreateAccountHandler(Context context) throws JsonProcessingException {
+    private void postCreateAccountHandler(Context ctx) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        Account account = mapper.readValue(context.body(), Account.class);
+        Account account = mapper.readValue(ctx.body(), Account.class);
         Account createdAccount = accountsService.createAccount(account);
         if(createdAccount==null){
-            context.status(400);
+            ctx.status(400);
         }else{
-            context.json(mapper.writeValueAsString(createdAccount));
+            ctx.json(mapper.writeValueAsString(createdAccount));
         }
     }
 
-    private void postLoginHandler(Context context) throws JsonProcessingException{
+    private void postLoginHandler(Context ctx) throws JsonProcessingException{
         ObjectMapper mapper = new ObjectMapper();
-        Account account = mapper.readValue(context.body(), Account.class);
+        Account account = mapper.readValue(ctx.body(), Account.class);
         Account loginAccount = accountsService.loginAccount(account);
         if(loginAccount==null){
-            context.status(401);
+            ctx.status(401);
         }else{
-            context.json(mapper.writeValueAsString(loginAccount));
+            ctx.json(mapper.writeValueAsString(loginAccount));
         }
     }
     
-    private void postCreateMessageHandler(Context context) throws JsonProcessingException{
+    private void postCreateMessageHandler(Context ctx) throws JsonProcessingException{
         ObjectMapper mapper = new ObjectMapper();
-        Message message = mapper.readValue(context.body(), Message.class);
+        Message message = mapper.readValue(ctx.body(), Message.class);
         Message createMessage = messagesService.createMessage(message);
         if(createMessage==null){
-            context.status(400);
+            ctx.status(400);
         }else{
-            context.json(mapper.writeValueAsString(createMessage));
+            ctx.json(mapper.writeValueAsString(createMessage));
         }
     }
 
@@ -82,5 +88,30 @@ public class SocialMediaController {
         }else{
             ctx.json(message);
         }
+    }
+
+    private void deleteMessageByIdHandler(Context ctx) {
+        Message deletedMessage = messagesService.deleteMessageById(Integer.parseInt(ctx.pathParam("message_id")));
+        if (deletedMessage != null) {
+            ctx.json(deletedMessage);
+        } else {
+            ctx.result("");
+        }
+    }
+
+    private void patchMessageTextHandler(Context ctx) {
+        Message updatedMessage = messagesService.updateMessageText(
+            Integer.parseInt(ctx.pathParam("message_id")),
+            ctx.bodyAsClass(Map.class).get("message_text").toString());
+        if (updatedMessage != null) {
+            ctx.json(updatedMessage);
+        } else {
+            ctx.status(400);
+        }
+    }
+
+    private void getMessagesByAccountIdHandler(Context ctx) {
+        List<Message> messages = messagesService.getMessagesByAccountId(Integer.parseInt(ctx.pathParam("account_id")));
+        ctx.json(messages);
     }
 }
